@@ -8,6 +8,7 @@ int main() {
     connect(newGraph, 2, 4);
     connect(newGraph, 3, 4);
     connect(newGraph, 3, 5);
+    deleteVertex(newGraph, 4);
     checkGraph(newGraph);
     clearMemory(newGraph);
     return 0;
