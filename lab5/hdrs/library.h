@@ -19,6 +19,7 @@ void deleteVertex(graph currentGraph, int item);
 void connect(graph currentGraph, int first, int second);
 void checkGraph(graph currentGraph);
 void clearMemory(graph currentGraph);
+void sortNilsInArray(int* array, int size);
 
 
 #endif //CLIB_LIBRARY_H
