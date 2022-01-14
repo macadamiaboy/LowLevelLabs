@@ -1,7 +1,10 @@
 #include "../hdrs/library.h"
-
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
+
+/*динамический массив neighbours у каждой вершины реализован нелогично,
+  ибо функция поиска писалась позже всех, и переделывать не хотелось*/
 
 graph createGraph(int size) {
     graph newGraph = (graph) malloc(sizeof(*newGraph));
@@ -10,8 +13,9 @@ graph createGraph(int size) {
     for (int i = 0; i < size; i++) {
         vertex newVertex = (vertex) malloc(sizeof(*newVertex));
         newVertex->number = i + 1;
+        newVertex->seen = false;
         newVertex->connections = 0;
-        newVertex->neighbours = (int *) malloc(1 * sizeof(int));
+        newVertex->neighbours = (int *) malloc(sizeof(int));
         newGraph->list[i] = newVertex;
     }
     return newGraph;
@@ -22,9 +26,10 @@ void addVertex(graph currentGraph) {
     int size = currentGraph->size;
     currentGraph->list = (vertex *) realloc(currentGraph->list, size * sizeof(vertex *));
     vertex newVertex = (vertex) malloc(sizeof(*newVertex));
-    newVertex->number = size;
+    newVertex->number = currentGraph->list[size - 2]->number + 1;
+    newVertex->seen = false;
     newVertex->connections = 0;
-    newVertex->neighbours = (int *) malloc(1 * sizeof(int));
+    newVertex->neighbours = (int *) malloc(sizeof(int));
     currentGraph->list[size - 1] = newVertex;
 }
 
@@ -86,7 +91,70 @@ void deleteVertex(graph currentGraph, int item) {
     }
 }
 
-//void search(graph currentGraph, int knownVertex, int unknownVertex) { }
+int* search(graph currentGraph, int knownVertex, int unknownVertex) {
+    int *exceptions = (int *) malloc(sizeof(int));
+    if (knownVertex == unknownVertex) {
+        exceptions[0] = knownVertex;
+        return exceptions;
+    }
+    vertex current = NULL;
+    int steps = 1;
+    int *way = (int *) malloc(2 * sizeof(int));
+    way[0] = 0; way[1] = 0;
+    //определяем текущую вершину
+    for (int i = 0; i < currentGraph->size; i++) {
+        if (currentGraph->list[i]->number == knownVertex) {
+            current = currentGraph->list[i];
+            current->seen = true;
+        }
+    }
+    if (current == NULL) {
+        return exceptions;
+    }
+    way = recursiveSearch(current, steps, way, currentGraph, unknownVertex);
+    if (way[steps] != 0) {
+        //printf("%d ", current->number);
+        way[steps - 1] = current->number;
+        return way;
+    } else return exceptions;
+}
+
+int* recursiveSearch(vertex current, int steps, int* way, graph currentGraph, int unknownVertex) {
+    //printf("current: %d ", current->number);
+    for (int i = 0; i < current->connections; i++) {
+        //printf("i: %d, steps: %d ", i, steps);
+        vertex newVertex = NULL;
+        for (int j = 0; j < currentGraph->size; j++) {
+            if (currentGraph->list[j]->number == current->neighbours[i]) {
+                newVertex = currentGraph->list[j];
+                //printf("chosen %d ", newVertex->number);
+                break;
+            }
+        }
+        if (newVertex->seen == false) {
+            if (newVertex->number == unknownVertex) {
+                //printf("%d ", newVertex->number);
+                way[steps] = newVertex->number;
+                return way;
+            }
+            newVertex->seen = true;
+            steps++;
+            way = (int *) realloc(way, (steps + 1) * sizeof(int));
+            way[steps] = 0;
+            //printf("calling, steps: %d \n", steps);
+            way = recursiveSearch(newVertex, steps, way, currentGraph, unknownVertex);
+            //printf("returning to %d ", current->number);
+            if (way[steps] != 0) {
+                //printf("%d ", newVertex->number);
+                way[steps - 1] = newVertex->number;
+                return way;
+            } else steps--;
+        }
+    }
+    way = (int *) realloc(way, (steps) * sizeof(int));
+    //printf("step back, steps: %d ", steps);
+    return way;
+}
 
 //для проверки и отладки
 void checkGraph(graph currentGraph) {
