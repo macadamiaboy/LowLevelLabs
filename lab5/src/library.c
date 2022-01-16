@@ -1,10 +1,6 @@
 #include "../hdrs/library.h"
-#include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
-
-/*динамический массив neighbours у каждой вершины реализован нелогично,
-  ибо функция поиска писалась позже всех, и переделывать не хотелось*/
+#include <string.h>
 
 graph createGraph(int size) {
     graph newGraph = (graph) malloc(sizeof(*newGraph));
@@ -47,7 +43,7 @@ void connect(graph currentGraph, int first, int second) {
     }
     for (int i = 0; i < firstVertex->connections; i++) {
         if (firstVertex->neighbours[i] == secondVertex->number) {
-            printf("These vertices are already connected \n");
+            //printf("These vertices are already connected \n");
             return;
         }
     }
@@ -94,6 +90,7 @@ void deleteVertex(graph currentGraph, int item) {
 int* search(graph currentGraph, int knownVertex, int unknownVertex) {
     int *exceptions = (int *) malloc(sizeof(int));
     if (knownVertex == unknownVertex) {
+        printf("\nYou've chosen the same vertices\n");
         exceptions[0] = knownVertex;
         return exceptions;
     }
@@ -101,7 +98,6 @@ int* search(graph currentGraph, int knownVertex, int unknownVertex) {
     int steps = 1;
     int *way = (int *) malloc(2 * sizeof(int));
     way[0] = 0; way[1] = 0;
-    //определяем текущую вершину
     for (int i = 0; i < currentGraph->size; i++) {
         if (currentGraph->list[i]->number == knownVertex) {
             current = currentGraph->list[i];
@@ -109,6 +105,7 @@ int* search(graph currentGraph, int knownVertex, int unknownVertex) {
         }
     }
     if (current == NULL) {
+        printf("\nYou've chosen not existed vertices\n");
         return exceptions;
     }
     way = recursiveSearch(current, steps, way, currentGraph, unknownVertex);
@@ -116,7 +113,10 @@ int* search(graph currentGraph, int knownVertex, int unknownVertex) {
         //printf("%d ", current->number);
         way[steps - 1] = current->number;
         return way;
-    } else return exceptions;
+    } else {
+        printf("\nChosen vertices aren't connected\n");
+        return exceptions;
+    }
 }
 
 int* recursiveSearch(vertex current, int steps, int* way, graph currentGraph, int unknownVertex) {
@@ -195,5 +195,35 @@ void sortVertices(graph currentGraph, int size) {
             currentGraph->list[i] = currentGraph->list[i + 1];
             currentGraph->list[i + 1] = nullable;
         }
+    }
+}
+
+graph readFromFile(FILE *fileToRead, int size) {
+    if (fileToRead == NULL) printf("File is not available \n");
+    graph newGraph = createGraph(size);
+    char *scannedString = (char *) malloc(size * 2);
+    int iteration = 1;
+    while (fgets(scannedString, size * 2, fileToRead) != NULL) {
+        int firstVertex = iteration;
+        char *delim = strtok(scannedString, " ");
+        while (delim != NULL)
+        {
+            connect(newGraph, firstVertex, atoi(delim));
+            delim = strtok (NULL, " ");
+        }
+        iteration++;
+    }
+    free(scannedString);
+    return newGraph;
+}
+
+void writeInFile(graph currentGraph, FILE *fileToWrite) {
+    fprintf(fileToWrite, "Graph with %d vertices is represented by connections: \n", currentGraph->size);
+    for (int i = 0; i < currentGraph->size; i++) {
+        fprintf(fileToWrite, "Vertex [%d]: ", currentGraph->list[i]->number);
+        for (int j = 0; j < currentGraph->list[i]->connections; j++) {
+            fprintf(fileToWrite, "%d ", currentGraph->list[i]->neighbours[j]);
+        }
+        fprintf(fileToWrite,"\n");
     }
 }
