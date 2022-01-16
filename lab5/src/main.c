@@ -1,15 +1,40 @@
 #include "../hdrs/library.h"
-#include "../src/library.c"
+#include "../hdrs/tests.h"
 
-int main() {
-    graph newGraph = createGraph(5);
-    connect(newGraph, 1, 2);
-    connect(newGraph, 1, 3);
-    connect(newGraph, 2, 4);
-    connect(newGraph, 3, 4);
-    connect(newGraph, 3, 5);
-    deleteVertex(newGraph, 4);
-    checkGraph(newGraph);
-    clearMemory(newGraph);
+int main(int argc, char *argv[]) {
+    if (argc != 3) {
+        printf("\nReceived arguments are wrong \n");
+        return 1;
+    }
+
+    int size;
+    sscanf(argv[1], "%d", &size);
+
+    FILE *fileToRead;
+    FILE *fileToWrite;
+
+    fileToRead = fopen(argv[2],"r");
+    if (fileToRead == NULL) {
+        printf("Files are not available \n");
+        fclose(fileToRead);
+        return 1;
+    }
+    graph currentGraph = readFromFile(fileToRead, size);
+
+    fileToWrite = fopen(argv[3],"w");
+    if (fileToWrite == NULL) {
+        printf("Files are not available \n");
+        fclose(fileToWrite);
+        return 1;
+    }
+    else {
+        writeInFile(currentGraph, fileToWrite);
+    }
+
+    runTests();
+
+    fclose(fileToWrite);
+    fclose(fileToRead);
+    clearMemory(currentGraph);
     return 0;
 }
