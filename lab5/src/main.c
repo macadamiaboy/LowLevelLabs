@@ -2,7 +2,7 @@
 #include "../hdrs/tests.h"
 
 int main(int argc, char *argv[]) {
-    if (argc != 3) {
+    if (argc != 4) {
         printf("\nReceived arguments are wrong \n");
         return 1;
     }
