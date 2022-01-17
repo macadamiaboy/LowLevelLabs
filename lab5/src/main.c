@@ -1,5 +1,7 @@
 #include "../hdrs/library.h"
+#include "../src/library.c"
 #include "../hdrs/tests.h"
+#include "../src/tests.c"
 
 int main(int argc, char *argv[]) {
     if (argc != 4) {
